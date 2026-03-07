@@ -8,6 +8,24 @@ const getAllQuestions = async (req, res) => {
     res.status(200).json(questions)
 }
 
+// @desc    Get question by ID
+// @route   GET /api/questions/:id
+// @access  Public
+const getQuestionById = async (req, res) => {
+    try {
+        const question = await Question.findById(req.params.id)
+
+        if (!question) {
+            res.status(404).json({ message: "Question not found" })
+            return
+        }
+
+        res.status(200).json(question)
+    } catch (err) {
+        res.status(400).json({ message: "Invalid question ID" })
+    }
+}
+
 // @desc    Add a new question
 // @route   POST /api/questions
 // @access  Public
@@ -80,6 +98,7 @@ deleteQuestion = async (req, res) => {
 
 module.exports = {
     getAllQuestions,
+    getQuestionById,
     addQuestion,
     updateQuestion,
     deleteQuestion,
