@@ -26,6 +26,21 @@ const getQuestionById = async (req, res) => {
     }
 }
 
+// @desc    Get questions by title. The regex is case-insensitive and matches any question whose title contains the search term.
+// @route   GET /api/questions/title/:title
+// @access  Public
+const getQuestionsByTitle = async (req, res) => {
+    try {
+        const questions = await Question.find({
+            title: { $regex: req.params.title, $options: "i" }
+        })
+
+        res.status(200).json(questions)
+    } catch (err) {
+        res.status(400).json({ message: "No questions found for this title" })
+    }
+}
+
 // @desc    Get questions by category
 // @route   GET /api/questions/category/:category
 // @access  Public
@@ -117,6 +132,7 @@ deleteQuestion = async (req, res) => {
 module.exports = {
     getAllQuestions,
     getQuestionById,
+    getQuestionsByTitle,
     getQuestionsByCategory,
     addQuestion,
     updateQuestion,
