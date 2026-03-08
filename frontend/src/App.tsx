@@ -1,7 +1,7 @@
-import Login from "./pages/Login.tsx";
+import Login from "./features/user/pages/Login.tsx";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { JSX } from "react";
-import Register from "./pages/Register.tsx";
+import Register from "./features/user/pages/Register.tsx";
 
 function Home() {
     return <h1>Welcome to PeerPrep 🎉</h1>;
