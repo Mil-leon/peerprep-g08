@@ -1,15 +1,26 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { JSX } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import Login from "./features/user/pages/Login.tsx";
 import Register from "./features/user/pages/Register.tsx";
-import Profile from "./features/user/pages/Profile";
+import Profile from "./features/user/pages/Profile.tsx";
 
 function Home() {
-    return <h1>Welcome to PeerPrep 🎉</h1>;
+    const navigate = useNavigate()
+
+    return (
+        <div>
+            <h1>Welcome to PeerPrep 🎉</h1>
+            <button
+                className="button"
+                onClick={() => navigate("/profile")}
+            >
+                Your Profile
+            </button>
+        </div>
+    )
 }
 
-function ProtectedRoute({ children }: { children: JSX.Element }) {
+function ProtectedRoute({ children }: { children: Element }) {
     const token = localStorage.getItem("token");
 
     if (!token) {

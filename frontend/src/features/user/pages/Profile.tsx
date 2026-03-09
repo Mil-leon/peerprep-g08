@@ -63,14 +63,37 @@ export default function Profile() {
 
         <p>{user.isAdmin ? "admin" : "user"}</p>
 
-        <button
-          onClick={() => {
-            localStorage.removeItem("token");
-            navigate("/login");
-          }}
-        >
-          Logout
-        </button>
+        <div className="button-container">
+
+            {
+                user.isAdmin ? (
+                    <button
+                        className="button"
+                        onClick={() => navigate("/admin/users")}
+                    >
+                        View All Users
+                    </button>
+                ) : (
+                    <button
+                        className="button"
+                        onClick={() => navigate("/upgrade")}
+                    >
+                        Upgrade Permissions
+                    </button>
+                )
+            }
+
+            <button
+                className="button"
+            onClick={() => {
+                localStorage.removeItem("token");
+                navigate("/login");
+            }}
+            >
+            Logout
+            </button>
+
+        </div>
       </div>
     </div>
   );
