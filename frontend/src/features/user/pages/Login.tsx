@@ -11,7 +11,7 @@ export default function Login() {
         e.preventDefault();
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+            const response = await fetch(`${import.meta.env.VITE_USER_API_URL}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -67,7 +67,7 @@ export default function Login() {
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </label>
-                    <button className="button" type={"submit"}>Submit</button>
+                    <button className="button" type={"submit"}>Log In</button>
                     <p>
                         Don't have an account?{" "}
                         <Link to="/register">
