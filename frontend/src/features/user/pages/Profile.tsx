@@ -26,7 +26,7 @@ export default function Profile() {
 
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_API_URL}/auth/me`,
+          `${import.meta.env.VITE_USER_API_URL}/auth/me`,
           {
             method: "GET",
             headers: {
@@ -56,7 +56,7 @@ export default function Profile() {
     setIsUpgrading(true);
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/users/upgrade`, {
+      const response = await fetch(`${import.meta.env.VITE_USER_API_URL}/users/upgrade`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
