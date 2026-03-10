@@ -30,7 +30,7 @@ export default function Register() {
                 throw new Error(data.message || "Registration failed");
             }
 
-            localStorage.setItem("token", data.token);
+            localStorage.setItem("token", data.data.accessToken);
 
             console.log("Registration successful:", data);
 
