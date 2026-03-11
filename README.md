@@ -8,5 +8,5 @@
 
 ### Setting up frontend
 1. Create .env file
-2. Add `VITE_API_URL=<backend url>`
+2. Add `VITE_USER_API_URL=<backend url>`
 3. Run `npm run dev`
