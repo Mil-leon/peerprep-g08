@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { type Question } from '../types/question.types.ts';
-import { getAllQuestions, createQuestion, deleteQuestion } from '../services/questionService.ts';
+import { getAllQuestions, createQuestion, deleteQuestion, updateQuestion} from '../services/questionService.ts';
 import './QuestionPage.css';
 
-// returns JSX.Element, so we can use it in App.tsx
+
 export default function QuestionPage() {
 
-// State management
+// State management, editingID tracks whether form is adding or editing.
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isAdding, setIsAdding] = useState<boolean>(false);
+  const [editingId, setEditingId] = useState<string | null>(null); 
   const [formData, setFormData] = useState<Question>({
     title: '',
     question: '', 
@@ -37,15 +38,22 @@ export default function QuestionPage() {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Create question handler
+  // Submission handler 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createQuestion(formData);
-      console.log("Question created successfully");
+      if (!editingId) { 
+        await createQuestion(formData);
+        console.log("Question created successfully!");
+      } else {
+        await updateQuestion(editingId, formData);
+        console.log("Question updated successfully!");
+      }
+      // reset form and refresh list
       setFormData({} as Question);
+      setEditingId(null);
       setIsAdding(false);
-      fetchQuestions(); // refresh
+      fetchQuestions();
     } catch (error) {
       console.error("Error creating question:", error);
       alert("Error creating question. Please try again.");
@@ -57,7 +65,7 @@ export default function QuestionPage() {
     if (!window.confirm("Are you sure you want to delete this question?")) return;
     try {
       await deleteQuestion(id);
-      console.log("Question deleted successfully");
+      console.log("Question deleted successfully!");
       setQuestions(questions => questions.filter(q => q._id !== id));
       fetchQuestions(); 
     } catch (error) {
@@ -66,6 +74,12 @@ export default function QuestionPage() {
     }
   };
 
+  const handleEditClick = (question: Question) => {
+    if (!question._id) return;
+    setFormData(question);
+    setEditingId(question._id);
+    setIsAdding(true);
+  }
   return (
 
     <div className="dashboard-layout">
@@ -153,7 +167,7 @@ export default function QuestionPage() {
                     <td>{q.category}</td>
                     <td>{q.difficulty}</td>
                     <td>
-                      <button className="edit-btn" onClick={() => handleEdit(q)}>Edit</button>
+                      <button className="edit-btn" onClick={() => handleEditClick(q)}>Edit</button>
                       <button className="delete-btn" onClick={() => handleDelete(q._id)}>Delete</button>
                     </td>
                   </tr>
