@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { type JSX } from "react";
+import QuestionPage from "./features/questions/pages/QuestionPage.tsx";
 import { useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import Login from "./features/user/pages/Login.tsx";
@@ -37,9 +39,13 @@ export default function App() {
         <BrowserRouter>
             <Routes>
                 <Route path="/login" element={<Login />} />
-
                 <Route path="/register" element={<Register />} />
-
+                <Route
+                    path="/questions"
+                    element={
+                            <QuestionPage />
+                    }
+                />
                 <Route
                     path="/"
                     element={
