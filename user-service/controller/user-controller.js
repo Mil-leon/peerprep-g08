@@ -15,6 +15,7 @@ import {
   createAdminCode as _createAdminCode,
   findAndUseAdminCode as _findAndUseAdminCode,
 } from "../model/repository.js";
+import jwt from "jsonwebtoken";
 
 
 export async function createUser(req, res) {
@@ -44,9 +45,15 @@ export async function createUser(req, res) {
         createdUser.isAdmin = true;
       }
 
+      const accessToken = jwt.sign({
+          id: createdUser.id,
+      }, process.env.JWT_SECRET, {
+          expiresIn: "1d",
+      });
+
       return res.status(201).json({
         message: `Created new user ${username} successfully`,
-        data: formatUserResponse(createdUser),
+        data: { accessToken, ...formatUserResponse(createdUser)},
       });
     } else {
       return res.status(400).json({ message: "username and/or email and/or password are missing" });

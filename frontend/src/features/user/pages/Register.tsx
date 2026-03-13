@@ -6,6 +6,7 @@ export default function Register() {
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("")
+    const [code, setCode] = useState("")
     const navigate = useNavigate()
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -21,6 +22,7 @@ export default function Register() {
                     username,
                     email,
                     password,
+                    code,
                 }),
             });
 
@@ -30,7 +32,7 @@ export default function Register() {
                 throw new Error(data.message || "Registration failed");
             }
 
-            localStorage.setItem("token", data.token);
+            localStorage.setItem("token", data.data.accessToken);
 
             console.log("Registration successful:", data);
 
@@ -77,6 +79,16 @@ export default function Register() {
                             value={password}
                             placeholder="Enter Password"
                             onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </label>
+                    <label>
+                        Register as Admin (optional)
+                        <input
+                            className="input"
+                            type="text"
+                            value={code}
+                            placeholder="Enter OTP"
+                            onChange={(e) => setCode(e.target.value)}
                         />
                     </label>
                     <button className="button" type={"submit"}>Register</button>

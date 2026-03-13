@@ -1,9 +1,11 @@
+import { useAdmin } from "../hooks/useAdmin"
 import { useUsers } from "../hooks/useUsers";
 import { useNavigate } from "react-router-dom";
 import "./UserManagement.css";
 
 export default function UserManagement() {
     const { users, loading, error, removeUser, togglePrivilege } = useUsers();
+    const { loadingOtp, generateAdminOtp } = useAdmin();
     const navigate = useNavigate();
 
     if (loading) return <p>Loading users...</p>;
@@ -14,9 +16,14 @@ export default function UserManagement() {
             <div className="box" style={{ maxWidth: "800px", width: "100%" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                     <h2>User Management</h2>
-                    <button className="button" onClick={() => navigate("/profile")}>
-                        Back to Profile
-                    </button>
+                    <div className='button-container'>
+                        <button className="button" onClick={generateAdminOtp} disabled={loadingOtp}>
+                            {loadingOtp ? "Generating..." : "Generate Admin OTP"}
+                        </button>
+                        <button className="button" onClick={() => navigate("/profile")}>
+                            Back to Profile
+                        </button>
+                    </div>
                 </div>
 
                 <div className="table-container">
