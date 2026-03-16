@@ -1,5 +1,5 @@
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@heroui/react";
-import { Link as RouterLink, useLocation } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import PeerprepIcon from "../../assets/images/peerprep-logo.png";
 
 export const PeerprepLogo = () => {
@@ -10,6 +10,7 @@ export const PeerprepLogo = () => {
 
 export default function AppNavbar() {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -62,12 +63,10 @@ export default function AppNavbar() {
       </NavbarContent>
       <NavbarContent justify="end">
         <NavbarItem className="hidden lg:flex">
-          <Link href="#">Login</Link>
-        </NavbarItem>
-        <NavbarItem>
-          <Button as={Link} color="primary" href="#" variant="flat">
-            Sign Up
-          </Button>
+          <Link href="#" onClick={() => {
+                localStorage.removeItem("token");
+                navigate("/login"); 
+              }}>Logout</Link>
         </NavbarItem>
       </NavbarContent>
     </Navbar>
