@@ -1,59 +1,35 @@
 import { useNavigate } from "react-router-dom";
 import PageLayout from "../../../shared/components/PageLayout";
+import { Button, Card, CardBody } from "@heroui/react";
 
 export default function Home() {
   const navigate = useNavigate();
 
-  // temporary logout for debug
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
-
-  const handleAdminOTP = () => {
-    navigate("/generate-otp");
-  };
-
-  const handleAdminUpgrade = () => {
-    navigate("/admin-upgrade");
-  };
-
-  const handleProfile = () => {
-    navigate("/profile");
-  };
-
   return (
     <PageLayout>
-      <div className="flex flex-col items-center justify-center space-y-6 mt-10">
-        <h1 className="text-3xl font-bold">Welcome to PeerPrep!</h1>
+      <div className="flex flex-col items-center justify-center mt-16 gap-6">
+        <h1 className="text-3xl font-bold text-gray-800">Welcome to PeerPrep! 🎉</h1>
+        <p className="text-gray-500 text-sm">What would you like to do today?</p>
 
-        <button className="button" onClick={handleProfile}>
-          Your Profile
-        </button>
-
-        <button
-          className="button"
-          onClick={handleAdminOTP}
-          style={{ backgroundColor: "#edde10" }}
-        >
-          Generate Admin OTP (use only if admin)
-        </button>
-
-        <button
-          className="button"
-          onClick={handleAdminUpgrade}
-          style={{ backgroundColor: "#2a10ed" }}
-        >
-          Enter admin upgrade OTP (use if user)
-        </button>
-
-        <button
-          className="button"
-          onClick={handleLogout}
-          style={{ backgroundColor: "#ec0a0a" }}
-        >
-          Log Out
-        </button>
+        <Card className="w-full max-w-sm" shadow="sm">
+          <CardBody className="flex flex-col gap-3 py-6 px-8">
+            <Button color="primary" variant="flat" className="w-full" onPress={() => navigate("/profile")}>
+              Your Profile
+            </Button>
+            <Button color="warning" variant="flat" className="w-full" onPress={() => navigate("/generate-otp")}>
+              Generate Admin OTP
+            </Button>
+            <Button color="secondary" variant="flat" className="w-full" onPress={() => navigate("/admin-upgrade")}>
+              Enter Admin Upgrade OTP
+            </Button>
+            <Button color="danger" variant="flat" className="w-full" onPress={() => {
+              localStorage.removeItem("token");
+              navigate("/login");
+            }}>
+              Log Out
+            </Button>
+          </CardBody>
+        </Card>
       </div>
     </PageLayout>
   );

@@ -43,11 +43,11 @@ export default function QuestionPage() {
     try {
       if (editingId) await updateQuestion(editingId, formData);
       else await createQuestion(formData);
-      
+
       setFormData(initialFormState);
       setEditingId(null);
       setIsAdding(false);
-      fetchQuestions(); 
+      fetchQuestions();
     } catch (error) {
       console.error("Error saving question:", error);
     }
@@ -69,23 +69,23 @@ export default function QuestionPage() {
     setIsAdding(false);
   };
 
-// Seperate into components : Question Form and Question Table
+  // Seperate into components : Question Form and Question Table
   return (
     <PageLayout>
       {isAdding ? (
-        <QuestionForm 
-          formData={formData} 
-          editingId={editingId} 
-          onChange={handleInputChange} 
-          onSubmit={handleSubmit} 
-          onCancel={handleCancel} 
+        <QuestionForm
+          formData={formData}
+          editingId={editingId}
+          onChange={handleInputChange}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
         />
       ) : (
-        <QuestionTable 
-          questions={questions} 
-          onAddNew={() => setIsAdding(true)} 
-          onEdit={handleEditClick} 
-          onDelete={handleDelete} 
+        <QuestionTable
+          questions={questions}
+          onAddNew={() => setIsAdding(true)}
+          onEdit={handleEditClick}
+          onDelete={handleDelete}
         />
       )}
     </PageLayout>

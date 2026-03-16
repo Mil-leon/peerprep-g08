@@ -1,94 +1,81 @@
-import { useAdmin } from "../hooks/useAdmin"
+import { useAdmin } from "../hooks/useAdmin";
 import { useUsers } from "../hooks/useUsers";
 import { useNavigate } from "react-router-dom";
-import "./UserManagement.css";
+import PageLayout from "../../../shared/components/PageLayout";
+import {
+  Table, TableHeader, TableColumn, TableBody, TableRow, TableCell,
+  Button, Chip
+} from "@heroui/react";
 
 export default function UserManagement() {
-    const { users, loading, error, removeUser, togglePrivilege } = useUsers();
-    const { loadingOtp, generateAdminOtp } = useAdmin();
-    const navigate = useNavigate();
+  const { users, loading, error, removeUser, togglePrivilege } = useUsers();
+  const { loadingOtp, generateAdminOtp } = useAdmin();
+  const navigate = useNavigate();
 
-    if (loading) return <p>Loading users...</p>;
-    if (error) return <p>Error: {error}</p>;
+  if (loading) return <p className="p-8 text-gray-500">Loading users...</p>;
+  if (error) return <p className="p-8 text-red-500">Error: {error}</p>;
 
-    return (
-        <div className="container">
-            <div className="box" style={{ maxWidth: "800px", width: "100%" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                    <h2>User Management</h2>
-                    <div className='button-container'>
-                        <button className="button" onClick={generateAdminOtp} disabled={loadingOtp}>
-                            {loadingOtp ? "Generating..." : "Generate Admin OTP"}
-                        </button>
-                        <button className="button" onClick={() => navigate("/profile")}>
-                            Back to Profile
-                        </button>
-                    </div>
-                </div>
-
-                <div className="table-container">
-                    <table width="100%" style={{ textAlign: "left", borderCollapse: "collapse" }}>
-                        <thead>
-                            <tr style={{ borderBottom: "1px solid #ddd" }}>
-                                <th style={{ padding: "10px" }}>Username</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.map((user) => (
-                                <tr key={user.id} style={{ borderBottom: "1px solid #eee" }}>
-                                    <td style={{ padding: "10px" }}>{user.username}</td>
-                                    <td>{user.email}</td>
-                                    <td>
-                                        <span
-                                            style={{
-                                                padding: "4px 8px",
-                                                borderRadius: "12px",
-                                                fontSize: "0.85em",
-                                                background: user.isAdmin ? "#d4edda" : "#e2e3e5",
-                                                color: user.isAdmin ? "#155724" : "#383d41",
-                                            }}
-                                        >
-                                            {user.isAdmin ? "Admin" : "User"}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: "flex", gap: "10px" }}>
-                                            <button
-                                                className="button"
-                                                style={{ padding: "6px 12px", fontSize: "0.85em", background: "#f0ad4e", color: "white" }}
-                                                onClick={() => togglePrivilege(user.id, !user.isAdmin)}
-                                            >
-                                                {user.isAdmin ? "Revoke Admin" : "Make Admin"}
-                                            </button>
-                                            <button
-                                                className="button"
-                                                style={{ padding: "6px 12px", fontSize: "0.85em", background: "#d9534f", color: "white" }}
-                                                onClick={() => {
-                                                    if (window.confirm("Are you sure you want to delete this user?")) {
-                                                        removeUser(user.id);
-                                                    }
-                                                }}
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {users.length === 0 && (
-                                <tr>
-                                    <td colSpan={4} style={{ textAlign: "center", padding: "20px" }}>
-                                        No users found.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  return (
+    <PageLayout>
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">User Management</h2>
+          <div className="flex gap-3">
+            <Button color="warning" className="text-white" onPress={generateAdminOtp} isLoading={loadingOtp}>
+              Generate Admin OTP
+            </Button>
+            <Button variant="bordered" onPress={() => navigate("/profile")}>
+              Back to Profile
+            </Button>
+          </div>
         </div>
-    );
+
+        <Table aria-label="Users table">
+          <TableHeader>
+            <TableColumn>USERNAME</TableColumn>
+            <TableColumn>EMAIL</TableColumn>
+            <TableColumn>ROLE</TableColumn>
+            <TableColumn>ACTIONS</TableColumn>
+          </TableHeader>
+          <TableBody emptyContent="No users found.">
+            {users.map((user) => (
+              <TableRow key={user.id}>
+                <TableCell>{user.username}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Chip color={user.isAdmin ? "success" : "default"} variant="flat" size="sm">
+                    {user.isAdmin ? "Admin" : "User"}
+                  </Chip>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      color="warning"
+                      onPress={() => togglePrivilege(user.id, !user.isAdmin)}
+                    >
+                      {user.isAdmin ? "Revoke Admin" : "Make Admin"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="flat"
+                      color="danger"
+                      onPress={() => {
+                        if (window.confirm("Are you sure you want to delete this user?")) {
+                          removeUser(user.id);
+                        }
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </PageLayout>
+  );
 }

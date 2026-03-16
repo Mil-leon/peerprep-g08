@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OtpModal from "../components/OtpModal";
 import PageLayout from "../../../shared/components/PageLayout";
+import { Button, Card, CardBody, Chip } from "@heroui/react";
 
 type User = {
   id: number;
@@ -84,61 +85,43 @@ export default function Profile() {
     }
   };
 
-  if (!user) {
-    return <p>Loading profile...</p>;
-  }
+  if (!user) return <p className="p-8 text-gray-500">Loading profile...</p>;
 
   return (
     <PageLayout>
-      <div className="container mx-auto">
-        <div className="box">
+      <div className="flex justify-center mt-10">
+        <Card className="w-full max-w-md" shadow="md">
+          <CardBody className="px-8 py-8 flex flex-col gap-4">
+            <h2 className="text-2xl font-bold">{user.username}</h2>
+            <p className="text-gray-500">{user.email}</p>
+            <Chip color={user.isAdmin ? "success" : "default"} variant="flat">
+              {user.isAdmin ? "Admin" : "User"}
+            </Chip>
 
-          <h2 className="text-2xl font-bold mb-2">{user.username}</h2>
-
-          <p className="mb-2">{user.email}</p>
-
-          <p className="mb-6 font-semibold">{user.isAdmin ? "admin" : "user"}</p>
-
-          <div className="button-container flex flex-col gap-4 items-center">
-
-            {
-              user.isAdmin ? (
-                <button
-                  className="button"
-                  onClick={() => navigate("/admin/UserManagement")}
-                >
+            <div className="flex flex-col gap-3 mt-4">
+              {user.isAdmin ? (
+                <Button color="primary" variant="flat" onPress={() => navigate("/admin/UserManagement")}>
                   View All Users
-                </button>
+                </Button>
               ) : (
-                <button
-                  className="button"
-                  onClick={() => setIsModalOpen(true)}
-                >
+                <Button color="warning" variant="flat" onPress={() => setIsModalOpen(true)}>
                   Upgrade Permissions
-                </button>
-              )
-            }
-
-            <button
-              className="button bg-red-600 hover:bg-red-700"
-              onClick={() => {
-                localStorage.removeItem("token");
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
-
-          </div>
-        </div>
-
-        <OtpModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleUpgradeSubmit}
-          isLoading={isUpgrading}
-        />
+                </Button>
+              )}
+              <Button color="danger" variant="flat" onPress={() => { localStorage.removeItem("token"); navigate("/login"); }}>
+                Logout
+              </Button>
+            </div>
+          </CardBody>
+        </Card>
       </div>
+
+      <OtpModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleUpgradeSubmit}
+        isLoading={isUpgrading}
+      />
     </PageLayout>
   );
 }

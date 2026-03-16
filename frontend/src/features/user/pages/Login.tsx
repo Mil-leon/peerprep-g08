@@ -1,6 +1,6 @@
 import { useState } from "react";
-import "./Login.css";
 import { Link, useNavigate } from "react-router-dom";
+import { Input, Button, Card, CardBody, CardHeader } from "@heroui/react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -9,73 +9,66 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
     try {
       const response = await fetch(
         `${import.meta.env.VITE_USER_API_URL}/auth/login`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         },
       );
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed");
-      }
-
+      if (!response.ok) throw new Error(data.message || "Login failed");
       localStorage.setItem("token", data.data.accessToken);
-
-      console.log("Login successful:", data);
-
-      // Navigate to home route without page reload
       navigate("/");
     } catch (error: any) {
-      console.error("Error:", error);
       alert(error.message || "Something went wrong");
     }
   };
 
   return (
-    <div className="container">
-      <div className="box">
-        <h3>Login to PeerPrep</h3>
-        <form className="form" onSubmit={handleSubmit}>
-          <label>
-            Email:
-            <input
-              className="input"
-              type="text"
+    <div
+      className="min-h-screen flex justify-center items-center"
+      style={{
+        background:
+          "radial-gradient(circle at top left, rgba(255, 140, 0, 0.15), transparent 40%), radial-gradient(circle at bottom right, rgba(255, 165, 0, 0.12), transparent 40%), #ffffff",
+      }}
+    >
+      <Card className="w-full max-w-[420px]" shadow="lg">
+        <CardHeader className="flex justify-center pt-6 pb-0">
+          <h3 className="text-xl font-semibold">Login to PeerPrep</h3>
+        </CardHeader>
+        <CardBody className="px-8 py-6">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <Input
+              label="Email"
+              type="email"
               value={email}
+              onValueChange={setEmail}
               placeholder="m@example.com"
-              onChange={(e) => setEmail(e.target.value)}
+              variant="bordered"
             />
-          </label>
-          <label>
-            Password:
-            <input
-              className="input"
+            <Input
+              label="Password"
               type="password"
               value={password}
+              onValueChange={setPassword}
               placeholder="Enter Password"
-              onChange={(e) => setPassword(e.target.value)}
+              variant="bordered"
             />
-          </label>
-          <button className="button" type={"submit"}>
-            Log In
-          </button>
-          <p>
-            Don't have an account? <Link to="/register">Register</Link>
-          </p>
-        </form>
-      </div>
+            <Button type="submit" color="warning" className="w-full mt-2 text-white font-semibold">
+              Log In
+            </Button>
+            <p className="text-center text-sm text-gray-500">
+              Don't have an account?{" "}
+              <Link to="/register" className="text-orange-500 hover:underline">
+                Register
+              </Link>
+            </p>
+          </form>
+        </CardBody>
+      </Card>
     </div>
   );
 }
