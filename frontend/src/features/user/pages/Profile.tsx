@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OtpModal from "../components/OtpModal";
 import PageLayout from "../../../shared/components/PageLayout";
-import { Button, Card, CardBody, Chip } from "@heroui/react";
+import { addToast, Button, Card, CardBody, Chip } from "@heroui/react";
 import { useUserProfile } from "../hooks/useUserProfile";
 import { useUpgradeToAdmin } from "../hooks/useUpgradeToAdmin";
 
@@ -16,10 +16,22 @@ export default function Profile() {
     mutate(code, {
       onSuccess: () => {
         setIsModalOpen(false);
-        alert("Success admin");
+        addToast({
+          title: "Upgrade Success!",
+          description: "Successfully upgraded to admin!",
+          color: "success",
+          timeout: 3000,
+          shouldShowTimeoutProgress: true,
+        });
       },
       onError: (err) => {
-        alert(err.message);
+        addToast({
+          title: "Error",
+          description: err.message,
+          color: "danger",
+          timeout: 3000,
+          shouldShowTimeoutProgress: true,
+        });
       },
     });
   };

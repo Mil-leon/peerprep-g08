@@ -13,7 +13,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <HeroUIProvider>
         <ToastProvider placement="top-center" />
-        <App />
+        <main className="light text-foreground bg-background">
+          <App />
+        </main>
       </HeroUIProvider>
     </QueryClientProvider>
   </StrictMode>,

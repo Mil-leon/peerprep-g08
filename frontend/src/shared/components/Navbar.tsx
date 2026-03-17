@@ -33,6 +33,7 @@ export default function AppNavbar() {
 
   return (
     <Navbar
+      maxWidth="xl"
       classNames={{
         item: [
           "flex",
@@ -50,9 +51,12 @@ export default function AppNavbar() {
         ],
       }}
     >
-      <NavbarBrand>
-        <PeerprepLogo />
-      </NavbarBrand>
+      <NavbarContent justify="start">
+        <NavbarBrand>
+          <PeerprepLogo />
+        </NavbarBrand>
+      </NavbarContent>
+
       <NavbarContent className="hidden sm:flex gap-4" justify="center">
         {navItems.map((item) => {
           const isActive =
@@ -73,7 +77,8 @@ export default function AppNavbar() {
           );
         })}
       </NavbarContent>
-      <NavbarContent justify="end">
+
+      <NavbarContent justify="end" className="pr-6">
         <NavbarItem className="hidden lg:flex">
           <Link
             href="#"
@@ -82,7 +87,7 @@ export default function AppNavbar() {
               navigate("/login");
             }}
           >
-            Logout
+            Log Out
           </Link>
         </NavbarItem>
       </NavbarContent>
