@@ -1,7 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { type JSX } from "react";
 import QuestionPage from "./features/questions/pages/QuestionPage.tsx";
-import { useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 
 import Login from "./features/user/pages/Login.tsx";
@@ -10,7 +8,7 @@ import Profile from "./features/user/pages/Profile.tsx";
 import UserManagement from "./features/user/pages/UserManagement.tsx";
 import AdminUpgrade from "./features/user/pages/AdminUpgrade.tsx";
 import GenerateOTP from "./features/user/pages/GenerateOtp.tsx";
-import Home from "./features/user/pages/Home.tsx"
+import Home from "./components/Home.tsx";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = localStorage.getItem("token");
@@ -47,13 +45,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        
-        <Route
-           path="/questions"
-             element={
-               <QuestionPage />
-             }
-        />
+
+        <Route path="/questions" element={<QuestionPage />} />
 
         <Route path="/profile" element={<Profile />} />
 
@@ -65,7 +58,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/"
           element={
