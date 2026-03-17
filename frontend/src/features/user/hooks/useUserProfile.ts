@@ -36,7 +36,7 @@ export const useUserProfile = () => {
 
       if (response.status != 200) {
         localStorage.removeItem("token");
-        queryClient.setQueryData(["userProfile"], null);
+        queryClient.setQueryData<User | null>(["userProfile"], null);
         throw new Error("Session expired, please log in again.");
       }
 

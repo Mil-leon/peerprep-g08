@@ -1,17 +1,27 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "@heroui/react";
+import { Button, Spinner } from "@heroui/react";
 import PageLayout from "../shared/components/PageLayout";
-import { useState } from "react";
-import type { User } from "../features/user/types/User";
+import { useUserProfile } from "../features/user/hooks/useUserProfile";
 
 export default function Home() {
+  const { data: user, isLoading } = useUserProfile();
+
   const navigate = useNavigate();
+
+  if (isLoading) return <Spinner />;
+
+  if (!user)
+    return (
+      <PageLayout>
+        <div>Something went wrong with login, redirecting...</div>
+      </PageLayout>
+    );
 
   return (
     <PageLayout>
       <div className="flex flex-col items-center justify-center mt-16 gap-6">
         <h1 className="text-3xl font-bold text-gray-800">
-          Welcome to PeerPrep! 🎉
+          Welcome to PeerPrep, {user?.username}! 🎉
         </h1>
         <p className="text-gray-500 text-sm">
           What would you like to do today?
@@ -25,20 +35,24 @@ export default function Home() {
           >
             Your Profile
           </Button>
-          <Button
-            color="warning"
-            className="w-full"
-            onPress={() => navigate("/generate-otp")}
-          >
-            Generate Admin OTP
-          </Button>
-          <Button
-            color="secondary"
-            className="w-full"
-            onPress={() => navigate("/admin-upgrade")}
-          >
-            Enter Admin Upgrade OTP
-          </Button>
+          {user.isAdmin && (
+            <Button
+              color="warning"
+              className="w-full"
+              onPress={() => navigate("/generate-otp")}
+            >
+              Generate Admin OTP
+            </Button>
+          )}
+          {!user.isAdmin && (
+            <Button
+              color="secondary"
+              className="w-full"
+              onPress={() => navigate("/admin-upgrade")}
+            >
+              Enter Admin Upgrade OTP
+            </Button>
+          )}
           <Button
             color="danger"
             className="w-full"
