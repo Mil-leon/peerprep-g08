@@ -30,7 +30,7 @@ export default function Home() {
         <div className="flex flex-col items-center text-center h-full max-w-xs gap-2">
           <Button
             color="primary"
-            className="w-full text-center"
+            className="w-full text-center bg-primary"
             onPress={() => navigate("/profile")}
           >
             Your Profile
