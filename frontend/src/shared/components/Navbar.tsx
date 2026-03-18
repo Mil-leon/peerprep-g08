@@ -7,6 +7,7 @@ import {
 } from "@heroui/react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import PeerprepIcon from "../../assets/images/peerprep-logo.png";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const PeerprepLogo = () => {
   return (
@@ -23,6 +24,8 @@ export const PeerprepLogo = () => {
 export default function AppNavbar() {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const queryClient = useQueryClient();
 
   const navItems = [
     { name: "Dashboard", path: "/" },
@@ -84,6 +87,7 @@ export default function AppNavbar() {
             href="#"
             onClick={() => {
               localStorage.removeItem("token");
+              queryClient.invalidateQueries({ queryKey: ["userProfile"] });
               navigate("/login");
             }}
           >

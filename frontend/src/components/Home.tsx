@@ -2,11 +2,14 @@ import { useNavigate } from "react-router-dom";
 import { Button, Spinner } from "@heroui/react";
 import PageLayout from "../shared/components/PageLayout";
 import { useUserProfile } from "../features/user/hooks/useUserProfile";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Home() {
   const { data: user, isLoading } = useUserProfile();
 
   const navigate = useNavigate();
+
+  const queryClient = useQueryClient();
 
   if (isLoading) return <Spinner />;
 
@@ -58,6 +61,7 @@ export default function Home() {
             className="w-full"
             onPress={() => {
               localStorage.removeItem("token");
+              queryClient.invalidateQueries({ queryKey: ["userProfile"] });
               navigate("/login");
             }}
           >

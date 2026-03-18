@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input, Button, Card, CardBody, CardHeader, Form } from "@heroui/react";
+import { loginUser } from "../api/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -12,16 +13,7 @@ export default function Login() {
     e.preventDefault();
     setErrorMessage("");
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_USER_API_URL}/auth/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        },
-      );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Login failed");
+      const data = await loginUser(email, password);
       localStorage.setItem("token", data.data.accessToken);
       navigate("/");
     } catch (error: any) {
