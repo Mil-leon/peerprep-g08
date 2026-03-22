@@ -150,6 +150,12 @@ export async function updateUserPrivilege(req, res) {
         return res.status(404).json({ message: `User ${userId} not found` });
       }
 
+      if (req.user.id === userId && isAdmin === false) {
+          return res.status(403).json({
+              message: "Cannot remove own admin privileges!",
+          });
+      }
+
       const updatedUser = await _updateUserPrivilegeById(userId, isAdmin === true);
       return res.status(200).json({
         message: `Updated privilege for user ${userId}`,
