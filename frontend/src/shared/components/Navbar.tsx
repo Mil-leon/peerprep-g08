@@ -5,9 +5,8 @@ import {
   NavbarItem,
   Link,
 } from "@heroui/react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation } from "react-router-dom";
 import PeerprepIcon from "../../assets/images/peerprep-logo.png";
-import { useQueryClient } from "@tanstack/react-query";
 import { useLogout } from "../../features/user/hooks/useLogout";
 
 export const PeerprepLogo = () => {
