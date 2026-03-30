@@ -17,3 +17,7 @@ Take note this URI links this service specifically to the question_service_db in
 - Run `npm install` in the question-service directory to install dependencies
 
 - Run `npm run dev` to run the microservice
+
+- Run `npm run test` to run the test cases.
+
+- Run  `npx jest --coverage` to see test coverage. 

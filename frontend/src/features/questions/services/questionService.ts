@@ -2,7 +2,7 @@ import axios from 'axios';
 import { type Question } from '../types/question.types.ts';
 
 
-const API_URL = 'http://localhost:8080/api/questions'; 
+const API_URL = import.meta.env.VITE_QUESTION_API_URL + '/api/questions'; 
 
 export const getAllQuestions = async (): Promise<Question[]> => {
     try {

@@ -52,3 +52,7 @@ The app will be available at `http://localhost:5173` (or the next available port
 - `npm run build`: Build the application for production.
 - `npm run lint`: Run ESLint to check for code issues.
 - `npm run preview`: Preview the production build locally.
+
+## .env configuration for frontend change
+VITE_USER_API_URL=http://localhost:3000/api/user-service
+VITE_QUESTION_API_URL=http://localhost:3000/api/question-service

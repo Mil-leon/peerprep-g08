@@ -3,7 +3,10 @@ const cors = require('cors');
 
 const dotenv = require('dotenv').config();
 const connectDB = require('./config/db');
-connectDB();
+
+if (process.env.NODE_ENV !== 'test') {
+    connectDB();
+}
 
 const app = express();
 
@@ -21,9 +24,11 @@ app.use(express.urlencoded({ extended: false }));
 
 const PORT = process.env.PORT || 8080;
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}...`)
-})
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}...`)
+    })
+}
 
 app.use('/api/questions', require('./routes/questionRoutes'))
 
