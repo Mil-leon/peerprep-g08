@@ -15,6 +15,13 @@ export default function Login() {
     try {
       const data = await loginUser(email, password);
       localStorage.setItem("token", data.data.accessToken);
+      // Store user data for later use (e.g., chat component needs username)
+      localStorage.setItem("userData", JSON.stringify({
+        id: data.data.id,
+        username: data.data.username,
+        email: data.data.email,
+        isAdmin: data.data.isAdmin,
+      }));
       navigate("/");
     } catch (error: any) {
       setErrorMessage(error.message || "Something went wrong");

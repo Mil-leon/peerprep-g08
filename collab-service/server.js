@@ -3,7 +3,7 @@ import http from "http";
 import cors from "cors";
 import { Server } from "socket.io";
 
-import roomRoutes from "./routes/room-routes.js";
+import { createRoomRouter } from "./routes/room-routes.js";
 import socketHandler from "./sockets/socket-handler.js";
 
 const port = process.env.PORT || 3219;
@@ -12,8 +12,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/rooms", roomRoutes);
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -21,6 +19,9 @@ const io = new Server(server, {
         origin: "*",
     },
 });
+
+// Pass io instance to room router for broadcasting
+app.use("/rooms", createRoomRouter(io));
 
 socketHandler(io);
 

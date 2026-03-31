@@ -47,11 +47,18 @@ export const getRoom = (req, res) => {
 
 /**
  * DELETE /rooms/:roomId
+ * Requires io instance to be passed for broadcasting
  */
-export const endRoom = (req, res) => {
-    const { roomId } = req.params;
+export const createEndRoom = (io) => {
+    return (req, res) => {
+        const { roomId } = req.params;
 
-    RoomModel.remove(roomId);
+        // Broadcast to all users in the room that it's being ended
+        io.to(roomId).emit("room_ended", { roomId, message: "Room has been closed by the host" });
 
-    res.json({ success: true });
+        // Delete the room from storage
+        RoomModel.remove(roomId);
+
+        res.json({ success: true });
+    };
 };

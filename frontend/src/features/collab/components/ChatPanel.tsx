@@ -3,9 +3,10 @@ import Chat from "./Chat";
 
 interface ChatPanelProps {
   roomId: string;
+  currentUsername: string;
 }
 
-export default function ChatPanel({ roomId }: ChatPanelProps) {
+export default function ChatPanel({ roomId, currentUsername }: ChatPanelProps) {
   return (
     <Card
       className="flex flex-col h-full rounded-none border-none shadow-none bg-content1"
@@ -24,7 +25,7 @@ export default function ChatPanel({ roomId }: ChatPanelProps) {
       </CardHeader>
       <Divider className="flex-none" />
       <CardBody className="flex-1 overflow-hidden p-4">
-        <Chat roomId={roomId} />
+        <Chat roomId={roomId} currentUsername={currentUsername} />
       </CardBody>
     </Card>
   );

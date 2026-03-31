@@ -34,11 +34,23 @@ export default function Room() {
 
   const [language, setLanguage] = useState("javascript");
   const [roomReady, setRoomReady] = useState(false);
-  /**
-   * questionId is null until the matchservice populates it.
-   * QuestionPanel handles the null case gracefully.
-   */
   const [questionId, setQuestionId] = useState<string | null>(null);
+  
+  // Get current username from localStorage or use empty string as fallback
+  const getUsernameFromStorage = () => {
+    const userData = localStorage.getItem("userData");
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        return parsed.username || "";
+      } catch {
+        return "";
+      }
+    }
+    return "";
+  };
+  
+  const [currentUsername] = useState<string>(getUsernameFromStorage());
 
   // ── Join room & hydrate metadata ────────────────────────────────────────────
   useEffect(() => {
@@ -144,7 +156,7 @@ export default function Room() {
             }
             chatPanel={
               <PanelErrorBoundary fallbackLabel="Chat panel error">
-                <ChatPanel roomId={id!} />
+                <ChatPanel roomId={id!} currentUsername={currentUsername} />
               </PanelErrorBoundary>
             }
           />

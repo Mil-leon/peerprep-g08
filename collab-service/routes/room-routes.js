@@ -1,11 +1,16 @@
 import express from "express";
-import { createRoom, joinRoom, getRoom, endRoom } from "../controller/room-controller.js";
+import { createRoom, joinRoom, getRoom, createEndRoom } from "../controller/room-controller.js";
 
-const router = express.Router();
+// Factory function to create router with io instance
+export const createRoomRouter = (io) => {
+    const router = express.Router();
 
-router.post("/create", createRoom);
-router.post("/join", joinRoom);
-router.get("/:roomId", getRoom);
-router.delete("/:roomId", endRoom);
+    router.post("/create", createRoom);
+    router.post("/join", joinRoom);
+    router.get("/:roomId", getRoom);
+    router.delete("/:roomId", createEndRoom(io));
 
-export default router;
+    return router;
+};
+
+export default createRoomRouter;
