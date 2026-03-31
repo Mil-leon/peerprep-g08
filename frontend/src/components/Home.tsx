@@ -43,6 +43,14 @@ export default function Home() {
               View Your {user.isAdmin ? "Admin" : "User"} Profile
             </p>
           </Button>
+
+          <Button
+            color="secondary"
+            className="w-full text-center"
+            onPress={() => navigate("/room")}
+          >
+            <p className="text-white">Enter Collaboration (Dev)</p>
+          </Button>
         </div>
       </div>
     </PageLayout>

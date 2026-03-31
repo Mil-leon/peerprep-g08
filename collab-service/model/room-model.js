@@ -1,8 +1,8 @@
 import { createRoom, getRoom, deleteRoom } from "../utils/room-store.js";
 
 class RoomModel {
-    static create(id) {
-        createRoom(id);
+    static create(id, questionId = null) {
+        createRoom(id, questionId);
         return getRoom(id);
     }
 

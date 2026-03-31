@@ -1,8 +1,9 @@
 export const rooms = new Map();
 
-export function createRoom(id) {
+export function createRoom(id, questionId = null) {
     rooms.set(id, {
         id,
+        questionId,
         users: [],
         messages: [],
     });
