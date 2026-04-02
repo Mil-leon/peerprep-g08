@@ -42,7 +42,7 @@ export default function Room() {
   const { data: user, isLoading, isError } = useUserProfile();
   const logout = useLogout();
 
-  const [language, setLanguage] = useState("javascript");
+  const [language, setLanguage] = useState("python");
   const [roomReady, setRoomReady] = useState(false);
   /**
    * questionId is null until the matchservice populates it.
@@ -153,7 +153,11 @@ export default function Room() {
             editorPanel={
               <PanelErrorBoundary fallbackLabel="Editor panel error">
                 <EditorPanel language={language} onLanguageChange={setLanguage}>
-                  <CollabEditor roomId={id!} language={language} />
+                  <CollabEditor
+                    roomId={id!}
+                    language={language}
+                    username={user.username}
+                  />
                 </EditorPanel>
               </PanelErrorBoundary>
             }
