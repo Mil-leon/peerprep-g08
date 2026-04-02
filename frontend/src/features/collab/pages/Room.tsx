@@ -21,6 +21,8 @@ import EditorPanel from "../components/EditorPanel";
 import ChatPanel from "../components/ChatPanel";
 import PanelErrorBoundary from "../components/PanelErrorBoundary";
 import CollabEditor from "../components/CollabEditor";
+import { useUserProfile } from "../../user/hooks/useUserProfile";
+import { useLogout } from "../../user/hooks/useLogout";
 
 /**
  * Room page — three-panel split view.
@@ -37,6 +39,9 @@ export default function Room() {
   // handles modal from displaying other party ending session
   const [sessionEnded, setSessionEnded] = useState(false);
 
+  const { data: user, isLoading, isError } = useUserProfile();
+  const logout = useLogout();
+
   const [language, setLanguage] = useState("javascript");
   const [roomReady, setRoomReady] = useState(false);
   /**
@@ -45,20 +50,30 @@ export default function Room() {
    */
   const [questionId, setQuestionId] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!isLoading && (isError || !user)) {
+      logout();
+    }
+  }, [isLoading, isError, user, logout]);
+
   // ── Join room & hydrate metadata ────────────────────────────────────────────
   useEffect(() => {
-    if (!id) return;
+    if (!id || isLoading) return;
 
-    joinRoom(id)
+    joinRoom(id, user)
       .then(({ data }) => {
         setQuestionId(data.questionId ?? null);
         setRoomReady(true);
       })
-      .catch(() => {
-        alert("Room does not exist!");
+      .catch((error) => {
+        if (error.response?.status === 403) {
+          alert("Room is full!");
+        } else {
+          alert("Room does not exist!");
+        }
         navigate("/");
       });
-  }, [id, navigate]);
+  }, [id, isLoading, navigate]);
 
   // ── End room ────────────────────────────────────────────────────────────────
   const handleConfirmEnd = async (onClose: () => void) => {

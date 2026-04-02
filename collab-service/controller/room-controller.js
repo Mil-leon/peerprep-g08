@@ -21,14 +21,22 @@ export function createRoomController(io) {
    * Returns the full room metadata so the frontend can read questionId.
    */
   const joinRoom = (req, res) => {
-    const { roomId } = req.body;
+    const { roomId, user } = req.body;
 
-    const room = RoomModel.findById(roomId);
-    if (!room) {
+    console.log("joinroom body:", req.body);
+
+    const { error, data: room } = RoomModel.addUserToRoom(roomId, user);
+    if (!error) {
+      return res.json({
+        success: true,
+        roomId: room.id,
+        questionId: room.questionId,
+      });
+    } else if (error === "Room is full") {
+      return res.status(403).json({ error: "Room full" });
+    } else {
       return res.status(404).json({ error: "Room not found" });
     }
-
-    res.json({ success: true, roomId: room.id, questionId: room.questionId });
   };
 
   /**
