@@ -1,14 +1,51 @@
-import { Component } from "react";
 import PageLayout from "../../../shared/components/PageLayout";
+import {
+  Card,
+  Checkbox,
+  CheckboxGroup,
+  Radio,
+  RadioGroup,
+} from "@heroui/react";
 
-export class MatchingPage extends Component {
-  render() {
-    return (
-      <PageLayout>
-        <h1>Matching Page</h1>
-      </PageLayout>
-    );
-  }
+export default function MatchingPage() {
+  return (
+    <PageLayout>
+      <div className="flex flex-col items-center justify-center h-full">
+        <h1 className="text-3xl font-bold mb-4">Matching Page Heee</h1>
+        <Card className="w-full max-w-md p-6">
+          <p className="text-gray-600">
+            This is where the matching functionality will be implemented.
+          </p>
+          <RadioGroup
+            orientation="horizontal"
+            label="Difficulty Level"
+            defaultValue="easy"
+            className="mt-4"
+          >
+            <Radio value="easy">Easy</Radio>
+            <Radio value="medium">Medium</Radio>
+            <Radio value="hard">Hard</Radio>
+          </RadioGroup>
+          <CheckboxGroup
+            orientation="horizontal"
+            label="Topics"
+            className="mt-4"
+          >
+            <Checkbox value="arrays">Arrays</Checkbox>
+            <Checkbox value="linked-lists">Linked Lists</Checkbox>
+            <Checkbox value="trees">Trees</Checkbox>
+          </CheckboxGroup>
+          <CheckboxGroup
+            orientation="horizontal"
+            label="Languages"
+            className="mt-4"
+          >
+            <Checkbox value="javascript">JavaScript</Checkbox>
+            <Checkbox value="python">Python</Checkbox>
+            <Checkbox value="java">Java</Checkbox>
+          </CheckboxGroup>
+        </Card>
+      </div>
+    </PageLayout>
+  );
 }
-
-export default MatchingPage;

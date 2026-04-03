@@ -9,7 +9,7 @@ import UserManagement from "./features/user/pages/UserManagement.tsx";
 import AdminUpgrade from "./features/user/pages/AdminUpgrade.tsx";
 import GenerateOTP from "./features/user/pages/GenerateOtp.tsx";
 import Home from "./components/Home.tsx";
-import { MatchingPage } from "./features/matching/pages/MatchingPage.tsx";
+import MatchingPage from "./features/matching/pages/MatchingPage.tsx";
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const token = localStorage.getItem("token");
