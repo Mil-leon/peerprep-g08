@@ -86,7 +86,7 @@ async function tryMatching(io, socket, queueKey) {
     if (s1 !== 'WAITING' || s2 !== 'WAITING') {
       await releaseLock(firstId, token1);
       await releaseLock(secondId, token2);
-      // Push back to queue if waitinf. 
+      // Push back to queue if waiting. 
       if (s2 === 'WAITING') await redisClient.lPush(queueKey, raw);
       break;
     }
