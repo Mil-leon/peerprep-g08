@@ -64,8 +64,17 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP', service: 'api-gateway' });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`API Gateway is running on port ${PORT}`);
+});
+
+// Handle WebSocket upgrades for matching-service and collab-service
+server.on('upgrade', (req, socket, head) => {
+    if (req.url.startsWith('/api/matching-service')) {
+        createProxyMiddleware({ target: MATCHING_SERVICE_URL, changeOrigin: true, ws: true, pathRewrite: { '^/api/matching-service': '' } }).upgrade(req, socket, head);
+    } else if (req.url.startsWith('/api/collab-service')) {
+        createProxyMiddleware({ target: COLLAB_SERVICE_URL, changeOrigin: true, ws: true, pathRewrite: { '^/api/collab-service': '' } }).upgrade(req, socket, head);
+    }
 });
 
 module.exports = app;

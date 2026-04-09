@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:latest
@@ -36,7 +34,6 @@ services:
       - "3001:3001"
     environment:
       - PORT=3001
-      - ENV=PROD
     env_file:
       - ./user-service/.env
     depends_on:
@@ -54,6 +51,8 @@ services:
       - PORT=3002
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - QUESTION_SERVICE_URL=http://question-service:8080
+      - COLLAB_SERVICE_URL=http://collab-service:3219
     depends_on:
       redis:
         condition: service_healthy
@@ -67,7 +66,6 @@ services:
       - "8080:8080"
     environment:
       - PORT=8080
-      - ENV=PROD
     env_file:
       - ./question-service/.env
     depends_on:
@@ -103,6 +101,8 @@ services:
       - PORT=3000
       - USER_SERVICE_URL=http://user-service:3001
       - QUESTION_SERVICE_URL=http://question-service:8080
+      - MATCHING_SERVICE_URL=http://matching-service:3002
+      - COLLAB_SERVICE_URL=http://collab-service:3219
     depends_on:
       user-service:
         condition: service_started
