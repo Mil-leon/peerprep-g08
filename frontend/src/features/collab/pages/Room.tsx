@@ -47,21 +47,21 @@ export default function Room() {
   const [roomReady, setRoomReady] = useState(false);
   const [questionId, setQuestionId] = useState<string | null>(null);
   
-  // Get current username from localStorage or use empty string as fallback
-  const getUsernameFromStorage = () => {
+  // Get current user data from localStorage
+  const getUserFromStorage = () => {
     const userData = localStorage.getItem("userData");
     if (userData) {
       try {
         const parsed = JSON.parse(userData);
-        return parsed.username || "";
+        return { username: parsed.username || "", id: parsed.id || "" };
       } catch {
-        return "";
+        return { username: "", id: "" };
       }
     }
-    return "";
+    return { username: "", id: "" };
   };
   
-  const [currentUsername] = useState<string>(getUsernameFromStorage());
+  const [currentUser] = useState<{ username: string; id: string }>(getUserFromStorage());
 
   // ── Fetch fresh user data from /auth/me on mount ────────────────────────────
   useEffect(() => {
@@ -197,7 +197,7 @@ export default function Room() {
             }
             chatPanel={
               <PanelErrorBoundary fallbackLabel="Chat panel error">
-                <ChatPanel roomId={id!} currentUsername={currentUsername} />
+                <ChatPanel roomId={id!} currentUsername={currentUser.username} currentUserId={currentUser.id} />
               </PanelErrorBoundary>
             }
           />

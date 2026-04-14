@@ -12,7 +12,15 @@ const CollabRoomModelSchema = new Schema({
       isAdmin: Boolean,
     },
   ],
-  messages: [{ type: String }],
+  messages: [
+    {
+      id: Number,
+      text: String,
+      senderUsername: String,
+      senderId: String,
+      timestamp: { type: Date, default: Date.now },
+    },
+  ],
   content: { type: String },
   createdAt: { type: Date, default: Date.now },
   lastSavedAt: { type: Date, default: Date.now },
@@ -52,5 +60,18 @@ export default class CollabRoomModel {
       { $set: { endedAt: new Date() } },
       { new: true },
     );
+  }
+
+  static async addMessage(roomId, message) {
+    return await CollabRoom.findOneAndUpdate(
+      { roomId },
+      { $push: { messages: message } },
+      { new: true },
+    );
+  }
+
+  static async getMessages(roomId) {
+    const room = await CollabRoom.findOne({ roomId });
+    return room ? room.messages : [];
   }
 }
