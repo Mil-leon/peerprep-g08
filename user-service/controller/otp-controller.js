@@ -10,10 +10,7 @@ import {
   updateUserPrivilegeById as _updateUserPrivilegeById,
 } from "../model/repository.js";
 
-import { sendOtpEmail, sendPasswordResetEmail } from "../utils/mailer.js";
-import bcrypt from "bcrypt";
-import { resetPasswordById as _resetPasswordById } from "../model/repository.js";
-import { validatePassword } from "../utils/validators.js";
+import { sendOtpEmail } from "../utils/mailer.js";
 
 /**
  * POST /auth/send-otp
@@ -131,77 +128,3 @@ export async function verifyOtp(req, res) {
   }
 }
 
-/**
- * POST /auth/forgot-password
- * Body: { email }
- *
- * Sends a password-reset OTP to the given email if an account exists.
- */
-export async function sendPasswordResetOtp(req, res) {
-  try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ message: "Email is required." });
-    }
-
-    const user = await _findUserByEmail(email);
-    // Always return 200 to avoid leaking whether the email is registered
-    if (!user) {
-      return res.status(200).json({ message: "If that email is registered, a reset code has been sent." });
-    }
-
-    const otp = String(crypto.randomInt(100000, 999999));
-    await _createOtp(email, otp, "password_reset");
-    await sendPasswordResetEmail(email, otp);
-
-    return res.status(200).json({ message: "Password reset code sent to your email. It expires in 10 minutes." });
-  } catch (err) {
-    console.error("sendPasswordResetOtp error:", err);
-    return res.status(500).json({ message: "Failed to send reset code. Please try again later." });
-  }
-}
-
-/**
- * POST /auth/reset-password
- * Body: { email, otp, newPassword }
- *
- * Verifies the password-reset OTP and updates the user's password.
- */
-export async function resetPassword(req, res) {
-  try {
-    const { email, otp, newPassword } = req.body;
-    if (!email || !otp || !newPassword) {
-      return res.status(400).json({ message: "Email, OTP, and new password are required." });
-    }
-
-    const pwValidation = validatePassword(newPassword);
-    if (!pwValidation.valid) {
-      return res.status(400).json({ message: pwValidation.message });
-    }
-
-    const storedOtp = await _findLatestOtpByEmail(email, "password_reset");
-    if (!storedOtp) {
-      return res.status(400).json({ message: "No reset code found for this email. Please request a new one." });
-    }
-
-    if (storedOtp.otp !== String(otp)) {
-      return res.status(400).json({ message: "Invalid reset code." });
-    }
-
-    const user = await _findUserByEmail(email);
-    if (!user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-
-    const salt = bcrypt.genSaltSync(10);
-    const hashedPassword = bcrypt.hashSync(newPassword, salt);
-
-    await _resetPasswordById(user.id, hashedPassword);
-    await _deleteOtpsByEmail(email, "password_reset");
-
-    return res.status(200).json({ message: "Password reset successfully. You may now log in." });
-  } catch (err) {
-    console.error("resetPassword error:", err);
-    return res.status(500).json({ message: "Failed to reset password. Please try again later." });
-  }
-}

@@ -7,6 +7,7 @@ import {
   deleteUser,
   generateAdminCode,
   upgradeUserToAdmin,
+  updateProfilePicture,
   formatUserResponse,
 } from "../../controller/user-controller.js";
 
@@ -23,6 +24,14 @@ jest.mock("../../model/repository.js", () => ({
   updateUserPrivilegeById: jest.fn(),
   createAdminCode: jest.fn(),
   findAndUseAdminCode: jest.fn(),
+  updateUserProfilePicture: jest.fn(),
+  createOtp: jest.fn(),
+  updateUserPrivilegeById: jest.fn(),
+}));
+
+// Mock the profile-picture-upload middleware helper
+jest.mock("../../middleware/profile-picture-upload.js", () => ({
+  bufferToDataUri: jest.fn((file) => `data:${file.mimetype};base64,FAKEBASE64`),
 }));
 
 import {
@@ -37,7 +46,11 @@ import {
   updateUserPrivilegeById as _updateUserPrivilegeById,
   createAdminCode as _createAdminCode,
   findAndUseAdminCode as _findAndUseAdminCode,
+  updateUserProfilePicture as _updateUserProfilePicture,
+  createOtp as _createOtp,
 } from "../../model/repository.js";
+
+jest.mock("../../utils/mailer.js", () => ({ sendOtpEmail: jest.fn() }));
 
 beforeAll(() => {
   process.env.JWT_SECRET = "test-secret";
@@ -63,12 +76,14 @@ const OTHER_ID = "507f1f77bcf86cd799439012";
 // formatUserResponse
 // ---------------------------------------------------------------------------
 describe("formatUserResponse", () => {
-  test("returns only the expected fields", () => {
+  test("returns only the expected fields and excludes password", () => {
     const user = {
       id: VALID_ID,
       username: "alice",
       email: "alice@test.com",
       isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: null,
       createdAt: new Date("2024-01-01"),
       password: "should-not-appear",
     };
@@ -78,9 +93,24 @@ describe("formatUserResponse", () => {
       username: "alice",
       email: "alice@test.com",
       isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: null,
       createdAt: user.createdAt,
     });
     expect(result).not.toHaveProperty("password");
+  });
+
+  test("defaults profilePicture to null when not set", () => {
+    const user = {
+      id: VALID_ID,
+      username: "alice",
+      email: "alice@test.com",
+      isAdmin: false,
+      isEmailVerified: true,
+      createdAt: new Date(),
+    };
+    const result = formatUserResponse(user);
+    expect(result.profilePicture).toBeNull();
   });
 });
 
@@ -100,7 +130,7 @@ describe("createUser", () => {
   test("returns 409 when username or email already exists", async () => {
     _findUserByUsernameOrEmail.mockResolvedValue({ id: OTHER_ID });
 
-    const req = { body: { username: "alice", email: "alice@test.com", password: "pass" } };
+    const req = { body: { username: "alice", email: "alice@test.com", password: "ValidPass1!" } };
     const res = mockRes();
 
     await createUser(req, res);
@@ -116,7 +146,7 @@ describe("createUser", () => {
     _findAndUseAdminCode.mockResolvedValue(null); // invalid code
 
     const req = {
-      body: { username: "alice", email: "alice@test.com", password: "pass", code: "BADCODE" },
+      body: { username: "alice", email: "alice@test.com", password: "ValidPass1!", code: "BADCODE" },
     };
     const res = mockRes();
 
@@ -126,52 +156,42 @@ describe("createUser", () => {
     expect(res.json).toHaveBeenCalledWith({ message: "Invalid or expired admin code" });
   });
 
-  test("returns 201 with accessToken for a regular user", async () => {
+  test("returns 201 and sends OTP for a regular user (deferred registration)", async () => {
     _findUserByUsernameOrEmail.mockResolvedValue(null);
-    const createdUser = {
-      id: VALID_ID,
-      username: "alice",
-      email: "alice@test.com",
-      isAdmin: false,
-      createdAt: new Date(),
-    };
-    _createUser.mockResolvedValue(createdUser);
+    _createOtp.mockResolvedValue({});
 
-    const req = { body: { username: "alice", email: "alice@test.com", password: "pass" } };
+    const req = { body: { username: "alice", email: "alice@test.com", password: "ValidPass1!" } };
     const res = mockRes();
 
     await createUser(req, res);
 
     expect(res.status).toHaveBeenCalledWith(201);
     const body = res.json.mock.calls[0][0];
-    expect(body.data).toHaveProperty("accessToken");
-    expect(body.data.username).toBe("alice");
+    expect(body.message).toMatch(/verification code/i);
+    expect(body.data).toHaveProperty("email", "alice@test.com");
+    expect(body.data).not.toHaveProperty("accessToken");
   });
 
-  test("returns 201 and sets isAdmin when valid admin code is provided", async () => {
+  test("returns 201 and stores isAdmin flag in OTP userData when valid admin code is provided", async () => {
     _findUserByUsernameOrEmail.mockResolvedValue(null);
     _findAndUseAdminCode.mockResolvedValue({ code: "ABCD1234" });
-    const createdUser = {
-      id: VALID_ID,
-      username: "admin",
-      email: "admin@test.com",
-      isAdmin: false,
-      createdAt: new Date(),
-    };
-    _createUser.mockResolvedValue(createdUser);
-    _updateUserPrivilegeById.mockResolvedValue({ ...createdUser, isAdmin: true });
+    _createOtp.mockResolvedValue({});
 
     const req = {
-      body: { username: "admin", email: "admin@test.com", password: "pass", code: "ABCD1234" },
+      body: { username: "admin", email: "admin@test.com", password: "ValidPass1!", code: "ABCD1234" },
     };
     const res = mockRes();
 
     await createUser(req, res);
 
-    expect(_updateUserPrivilegeById).toHaveBeenCalledWith(VALID_ID, true);
     expect(res.status).toHaveBeenCalledWith(201);
-    const body = res.json.mock.calls[0][0];
-    expect(body.data.isAdmin).toBe(true);
+    // isAdmin flag is stored in userData inside the OTP record, not in the user document yet
+    expect(_createOtp).toHaveBeenCalledWith(
+      "admin@test.com",
+      expect.any(String),
+      "email_verification",
+      expect.objectContaining({ username: "admin", isAdmin: true }),
+    );
   });
 });
 
@@ -379,6 +399,57 @@ describe("generateAdminCode", () => {
     expect(typeof code).toBe("string");
     expect(code).toHaveLength(8);
     expect(code).toBe(code.toUpperCase());
+  });
+});
+
+// ---------------------------------------------------------------------------
+// updateProfilePicture
+// ---------------------------------------------------------------------------
+describe("updateProfilePicture", () => {
+  test("returns 404 for invalid ObjectId", async () => {
+    const req = { params: { id: "bad-id" }, file: { mimetype: "image/png", buffer: Buffer.from("") } };
+    const res = mockRes();
+    await updateProfilePicture(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  test("returns 404 when user does not exist", async () => {
+    _findUserById.mockResolvedValue(null);
+    const req = { params: { id: VALID_ID }, file: { mimetype: "image/png", buffer: Buffer.from("") } };
+    const res = mockRes();
+    await updateProfilePicture(req, res);
+    expect(res.status).toHaveBeenCalledWith(404);
+  });
+
+  test("returns 400 when no file is provided", async () => {
+    _findUserById.mockResolvedValue({ id: VALID_ID });
+    const req = { params: { id: VALID_ID }, file: undefined };
+    const res = mockRes();
+    await updateProfilePicture(req, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({ message: "No profile picture file provided." });
+  });
+
+  test("returns 200 and saves the data URI on success", async () => {
+    const existingUser = { id: VALID_ID, username: "alice", email: "a@t.com", isAdmin: false, isEmailVerified: true, createdAt: new Date() };
+    _findUserById.mockResolvedValue(existingUser);
+    _updateUserProfilePicture.mockResolvedValue({
+      ...existingUser,
+      profilePicture: "data:image/png;base64,FAKEBASE64",
+    });
+
+    const req = {
+      params: { id: VALID_ID },
+      file: { mimetype: "image/png", buffer: Buffer.from("fake-image-data") },
+    };
+    const res = mockRes();
+
+    await updateProfilePicture(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(_updateUserProfilePicture).toHaveBeenCalledWith(VALID_ID, "data:image/png;base64,FAKEBASE64");
+    const body = res.json.mock.calls[0][0];
+    expect(body.data.profilePicture).toBe("data:image/png;base64,FAKEBASE64");
   });
 });
 

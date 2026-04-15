@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { handleLogin, handleVerifyToken } from "../../controller/auth-controller.js";
+import { handleLogin, handleVerifyToken, handleGetMe } from "../../controller/auth-controller.js";
 
 // Mock repository and user-controller helpers
 jest.mock("../../model/repository.js", () => ({
@@ -135,5 +135,42 @@ describe("handleVerifyToken", () => {
     await handleVerifyToken(req, res);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({ message: "Token verified", data: user });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// handleGetMe
+// ---------------------------------------------------------------------------
+describe("handleGetMe", () => {
+  test("200 – returns full profile including profilePicture", async () => {
+    const user = {
+      id: "u1",
+      username: "alice",
+      email: "alice@test.com",
+      isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: "data:image/png;base64,abc123",
+    };
+    const req = { user };
+    const res = mockRes();
+    await handleGetMe(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({ message: "User profile fetched", data: user });
+  });
+
+  test("200 – returns null profilePicture when none is set", async () => {
+    const user = {
+      id: "u2",
+      username: "bob",
+      email: "bob@test.com",
+      isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: null,
+    };
+    const req = { user };
+    const res = mockRes();
+    await handleGetMe(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json.mock.calls[0][0].data.profilePicture).toBeNull();
   });
 });
