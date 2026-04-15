@@ -111,6 +111,11 @@ export default function MatchingPage() {
     setSearchStatus("Searching for a match...");
 
     // Emit the find-match event
+    if (!socket) {
+      setError("Not connected to matching service. Please refresh.");
+      setIsSearching(false);
+      return;
+    }
     socket.emit("find-match", {
       languages: selectedLanguages,
       difficulty,
@@ -120,7 +125,7 @@ export default function MatchingPage() {
 
   const handleCancel = () => {
     setIsSearching(false);
-    socket.emit("cancel-match");
+    socket?.emit("cancel-match");
   };
 
   return (
