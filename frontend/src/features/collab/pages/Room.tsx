@@ -15,7 +15,7 @@ import {
 
 import { joinRoom, endRoom } from "../services/api";
 import { getCurrentUser } from "../../user/api/auth";
-import { RoomLayoutProvider } from "../context/RoomLayoutContext";
+import { RoomLayoutProvider } from "../context/RoomLayoutProvider";
 import SplitPaneLayout, { PanelToggleButtons } from "../components/SplitPane";
 import QuestionPanel from "../components/QuestionPanel";
 import EditorPanel from "../components/EditorPanel";

@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { Button, Tooltip } from "@heroui/react";
-import { useRoomLayout } from "../context/RoomLayoutContext";
+import { useRoomLayout } from "../hooks/useRoomLayout";
 
 interface PanelProps {
   children: ReactNode;

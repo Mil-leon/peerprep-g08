@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import PageLayout from "../../../shared/components/PageLayout";
 import {
   Card,
@@ -12,12 +12,16 @@ import {
   Spinner,
   Alert,
 } from "@heroui/react";
+import { useUserProfile } from "../../user/hooks/useUserProfile";
+import { getErrorMessage } from "../../../utils/error-handler";
+
 const SOCKET_URL =
   import.meta.env.VITE_MATCHING_API_GATEWAY_URL ||
   "http://localhost:3000";
 
 export default function MatchingPage() {
   const navigate = useNavigate();
+  const { data: user } = useUserProfile();
   // State for form inputs
   const [difficulty, setDifficulty] = useState("easy");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
@@ -27,7 +31,7 @@ export default function MatchingPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchStatus, setSearchStatus] = useState("Searching for a match...");
   const [error, setError] = useState<string | null>(null);
-  const [socket, setSocket] = useState<any>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -53,7 +57,7 @@ export default function MatchingPage() {
 
     newSocket.on(
       "match-found",
-      (data: any ) => {
+      (data: { roomUrl?: { roomId: string }; partnerUserId: string }) => {
         console.log("Match found!", data);
         setIsSearching(false);
         // Navigate to collaboration room with the matched partner
@@ -85,9 +89,9 @@ export default function MatchingPage() {
       setError("Connection lost to matching service");
     });
 
-    newSocket.on("error", (err: any) => {
+    newSocket.on("error", (err: unknown) => {
       console.error("Socket error:", err);
-      setError("Connection error to matching service");
+      setError(`Connection error to matching service: ${getErrorMessage(err)}`);
     });
 
     setSocket(newSocket);
@@ -108,7 +112,13 @@ export default function MatchingPage() {
     setSearchStatus("Searching for a match...");
 
     // Emit the find-match event
+    if (!socket) {
+      setError("Not connected to matching service. Please refresh.");
+      setIsSearching(false);
+      return;
+    }
     socket.emit("find-match", {
+      userId: user?.id,
       languages: selectedLanguages,
       difficulty,
       topics: selectedTopics,
@@ -117,7 +127,7 @@ export default function MatchingPage() {
 
   const handleCancel = () => {
     setIsSearching(false);
-    socket.emit("cancel-match");
+    socket?.emit("cancel-match");
   };
 
   return (

@@ -38,7 +38,7 @@ export const useUpgradeToAdmin = () => {
 
       return result.data;
     },
-    onSuccess: (_) => {
+    onSuccess: () => {
       // refetch updated user profile from db
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     },

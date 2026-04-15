@@ -49,7 +49,6 @@ export const useUserProfile = () => {
       return result.data;
     },
     enabled: !!localStorage.getItem("token"),
-    staleTime: 5 * 60 * 1000,
     retry: false,
   });
 };

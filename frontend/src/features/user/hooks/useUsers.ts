@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { User } from "../types/User";
 import * as userService from "../services/userService";
+import { getErrorMessage } from "../../../utils/error-handler";
 
 export function useUsers() {
     const [users, setUsers] = useState<User[]>([]);
@@ -13,8 +14,8 @@ export function useUsers() {
         try {
             const data = await userService.getAllUsers();
             setUsers(data);
-        } catch (err: any) {
-            setError(err.message || "Failed to load users");
+        } catch (err) {
+            setError(getErrorMessage(err) || "Failed to load users");
         } finally {
             setLoading(false);
         }
@@ -30,8 +31,8 @@ export function useUsers() {
             await userService.deleteUser(id);
             // Update local state to remove the user without re-fetching
             setUsers((prev) => prev.filter((user) => user.id !== id));
-        } catch (err: any) {
-            alert(err.message || "Failed to delete user");
+        } catch (err) {
+            alert(getErrorMessage(err) || "Failed to delete user");
         }
     };
 
@@ -42,8 +43,8 @@ export function useUsers() {
             setUsers((prev) =>
                 prev.map((user) => (user.id === id ? { ...user, isAdmin: updatedUser.isAdmin } : user))
             );
-        } catch (err: any) {
-            alert(err.message || "Failed to update privilege");
+        } catch (err) {
+            alert(getErrorMessage(err) || "Failed to update privilege");
         }
     };
 

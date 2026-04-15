@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getErrorMessage } from "../../../utils/error-handler";
 
 export default function AdminUpgrade() {
   const [code, setCode] = useState("");
@@ -34,9 +35,9 @@ export default function AdminUpgrade() {
       }
 
       setMessage("Successfully upgraded to Admin!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error:", error);
-      setMessage(error.message || "Something went wrong");
+      setMessage(getErrorMessage(error) || "Something went wrong");
     }
   };
 

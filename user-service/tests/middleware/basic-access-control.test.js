@@ -89,6 +89,8 @@ describe("verifyAccessToken", () => {
       username: "alice",
       email: "alice@example.com",
       isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: null,
     };
     findUserById.mockResolvedValue(dbUser);
 
@@ -102,7 +104,34 @@ describe("verifyAccessToken", () => {
         username: "alice",
         email: "alice@example.com",
         isAdmin: false,
+        isEmailVerified: true,
+        profilePicture: null,
       });
+      done();
+    });
+  });
+
+  test("populates req.user with profilePicture when one is set", (done) => {
+    const token = jwt.sign({ id: "user-id-456" }, JWT_SECRET);
+    const req = { headers: { authorization: `Bearer ${token}` } };
+    const res = mockRes();
+    const next = jest.fn();
+
+    findUserById.mockResolvedValue({
+      id: "user-id-456",
+      username: "bob",
+      email: "bob@example.com",
+      isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: "data:image/png;base64,abc123",
+    });
+
+    verifyAccessToken(req, res, next);
+
+    setImmediate(async () => {
+      await Promise.resolve();
+      expect(next).toHaveBeenCalled();
+      expect(req.user.profilePicture).toBe("data:image/png;base64,abc123");
       done();
     });
   });

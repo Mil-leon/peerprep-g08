@@ -17,6 +17,14 @@ export async function handleLogin(req, res) {
         return res.status(401).json({ message: "Wrong email and/or password" });
       }
 
+      // F1.1.2 – Block login for unverified email addresses
+      if (!user.isEmailVerified) {
+        return res.status(403).json({
+          message: "Email not verified. Please verify your email before logging in.",
+          emailVerificationRequired: true,
+        });
+      }
+
       const accessToken = jwt.sign({
         id: user.id,
       }, process.env.JWT_SECRET, {

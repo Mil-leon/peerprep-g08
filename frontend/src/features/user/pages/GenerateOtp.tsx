@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import PageLayout from "../../../shared/components/PageLayout";
+import { getErrorMessage } from "../../../utils/error-handler";
 
 export default function GenerateOTP() {
   const [otp, setOtp] = useState<string | null>(null);
@@ -54,10 +55,10 @@ export default function GenerateOTP() {
 
       setOtp(data.data.code);
       setMessage("Admin code generated successfully!");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error:", error);
       setError(true);
-      setMessage(error.message || "Something went wrong");
+      setMessage(getErrorMessage(error) || "Something went wrong");
     }
   };
 

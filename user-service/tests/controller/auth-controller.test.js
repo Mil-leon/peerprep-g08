@@ -14,6 +14,8 @@ jest.mock("../../controller/user-controller.js", () => ({
     username: user.username,
     email: user.email,
     isAdmin: user.isAdmin,
+    isEmailVerified: user.isEmailVerified,
+    profilePicture: user.profilePicture ?? null,
     createdAt: user.createdAt,
   })),
 }));
@@ -38,83 +40,87 @@ function mockRes() {
   return res;
 }
 
+// Precanned user objects
+async function makeUser(overrides = {}) {
+  const plainPassword = overrides.plainPassword ?? "ValidPass1!";
+  const hashedPassword = await bcrypt.hash(plainPassword, 10);
+  return {
+    id: "user-1",
+    username: "alice",
+    email: "alice@test.com",
+    password: hashedPassword,
+    isAdmin: false,
+    isEmailVerified: true,   // verified by default – needed to pass login guard
+    profilePicture: null,
+    createdAt: new Date(),
+    ...overrides,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // handleLogin
 // ---------------------------------------------------------------------------
 describe("handleLogin", () => {
-  test("returns 400 when email or password is missing", async () => {
+  test("400 – email or password missing", async () => {
     const req = { body: { email: "test@test.com" } }; // password missing
     const res = mockRes();
-
     await handleLogin(req, res);
-
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Missing email and/or password",
-    });
+    expect(res.json).toHaveBeenCalledWith({ message: "Missing email and/or password" });
   });
 
-  test("returns 401 when user is not found", async () => {
+  test("401 – user not found", async () => {
     findUserByEmail.mockResolvedValue(null);
-
     const req = { body: { email: "nobody@test.com", password: "pass" } };
     const res = mockRes();
-
     await handleLogin(req, res);
-
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Wrong email and/or password",
-    });
+    expect(res.json).toHaveBeenCalledWith({ message: "Wrong email and/or password" });
   });
 
-  test("returns 401 when password does not match", async () => {
-    const hashedPassword = await bcrypt.hash("correct-password", 10);
-    findUserByEmail.mockResolvedValue({
-      id: "user-1",
-      username: "bob",
-      email: "bob@test.com",
-      password: hashedPassword,
-      isAdmin: false,
-      createdAt: new Date(),
-    });
-
-    const req = { body: { email: "bob@test.com", password: "wrong-password" } };
-    const res = mockRes();
-
-    await handleLogin(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Wrong email and/or password",
-    });
-  });
-
-  test("returns 200 with accessToken on successful login", async () => {
-    const plainPassword = "secret123";
-    const hashedPassword = await bcrypt.hash(plainPassword, 10);
-    const user = {
-      id: "user-1",
-      username: "alice",
-      email: "alice@test.com",
-      password: hashedPassword,
-      isAdmin: false,
-      createdAt: new Date(),
-    };
+  test("401 – password does not match", async () => {
+    const user = await makeUser();
     findUserByEmail.mockResolvedValue(user);
+    const req = { body: { email: "alice@test.com", password: "WrongPass9!" } };
+    const res = mockRes();
+    await handleLogin(req, res);
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: "Wrong email and/or password" });
+  });
 
+  // F1.1.2 – email verification gate
+  test("403 – email not yet verified", async () => {
+    const user = await makeUser({ isEmailVerified: false });
+    findUserByEmail.mockResolvedValue(user);
+    const req = { body: { email: "alice@test.com", password: "ValidPass1!" } };
+    const res = mockRes();
+    await handleLogin(req, res);
+    expect(res.status).toHaveBeenCalledWith(403);
+    const body = res.json.mock.calls[0][0];
+    expect(body.emailVerificationRequired).toBe(true);
+  });
+
+  test("200 – successful login returns accessToken", async () => {
+    const plainPassword = "ValidPass1!";
+    const user = await makeUser({ plainPassword, isEmailVerified: true });
+    findUserByEmail.mockResolvedValue(user);
     const req = { body: { email: "alice@test.com", password: plainPassword } };
     const res = mockRes();
-
     await handleLogin(req, res);
-
     expect(res.status).toHaveBeenCalledWith(200);
-    const responseBody = res.json.mock.calls[0][0];
-    expect(responseBody.message).toBe("User logged in");
-    expect(responseBody.data).toHaveProperty("accessToken");
-    // Verify the token is valid
-    const decoded = jwt.verify(responseBody.data.accessToken, JWT_SECRET);
+    const body = res.json.mock.calls[0][0];
+    expect(body.message).toBe("User logged in");
+    expect(body.data).toHaveProperty("accessToken");
+    const decoded = jwt.verify(body.data.accessToken, JWT_SECRET);
     expect(decoded.id).toBe("user-1");
+  });
+
+  test("500 – repository throws", async () => {
+    findUserByEmail.mockRejectedValue(new Error("DB error"));
+    const req = { body: { email: "alice@test.com", password: "ValidPass1!" } };
+    const res = mockRes();
+    await handleLogin(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
   });
 });
 
@@ -122,18 +128,13 @@ describe("handleLogin", () => {
 // handleVerifyToken
 // ---------------------------------------------------------------------------
 describe("handleVerifyToken", () => {
-  test("returns 200 with the verified user from req.user", async () => {
+  test("200 – returns the verified user from req.user", async () => {
     const user = { id: "u1", username: "test", email: "t@t.com", isAdmin: false };
     const req = { user };
     const res = mockRes();
-
     await handleVerifyToken(req, res);
-
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Token verified",
-      data: user,
-    });
+    expect(res.json).toHaveBeenCalledWith({ message: "Token verified", data: user });
   });
 });
 
@@ -141,17 +142,35 @@ describe("handleVerifyToken", () => {
 // handleGetMe
 // ---------------------------------------------------------------------------
 describe("handleGetMe", () => {
-  test("returns 200 with the current user from req.user", async () => {
-    const user = { id: "u1", username: "test", email: "t@t.com", isAdmin: false };
+  test("200 – returns full profile including profilePicture", async () => {
+    const user = {
+      id: "u1",
+      username: "alice",
+      email: "alice@test.com",
+      isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: "data:image/png;base64,abc123",
+    };
     const req = { user };
     const res = mockRes();
-
     await handleGetMe(req, res);
-
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "User profile fetched",
-      data: user,
-    });
+    expect(res.json).toHaveBeenCalledWith({ message: "User profile fetched", data: user });
+  });
+
+  test("200 – returns null profilePicture when none is set", async () => {
+    const user = {
+      id: "u2",
+      username: "bob",
+      email: "bob@test.com",
+      isAdmin: false,
+      isEmailVerified: true,
+      profilePicture: null,
+    };
+    const req = { user };
+    const res = mockRes();
+    await handleGetMe(req, res);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json.mock.calls[0][0].data.profilePicture).toBeNull();
   });
 });
