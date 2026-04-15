@@ -74,4 +74,9 @@ export default class CollabRoomModel {
     const room = await CollabRoom.findOne({ roomId });
     return room ? room.messages : [];
   }
+
+  static async isRoomEnded(roomId) {
+    const room = await CollabRoom.findOne({ roomId });
+    return room && room.endedAt ? true : false;
+  }
 }

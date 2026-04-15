@@ -109,7 +109,7 @@ export default function Chat({ roomId, currentUsername, currentUserId }: ChatPro
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="Type a message..."
+                    placeholder={`Start message with "@AI" for AI assistance`}
                     rows={1}
                     className="flex-1 border rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

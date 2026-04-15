@@ -23,6 +23,13 @@ export function createRoomController(io) {
    */
   const joinRoom = async (req, res) => {
     const { roomId, user } = req.body;
+    
+    // Check if room has ended
+    const isEnded = await CollabRoomModel.isRoomEnded(roomId);
+    if (isEnded) {
+      return res.status(410).json({ error: "Room has ended" });
+    }
+    
     const { error, data: room } = await CollabRoomModel.addUserToRoom(
       roomId,
       user,
@@ -50,6 +57,10 @@ export function createRoomController(io) {
     const room = await CollabRoomModel.findById(roomId);
     if (!room) {
       return res.status(404).json({ error: "Room not found" });
+    }
+
+    if (room.endedAt) {
+      return res.status(410).json({ error: "Room has ended" });
     }
 
     res.json({ roomId: room.roomId, questionId: room.questionId });
