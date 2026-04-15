@@ -29,28 +29,41 @@ function createTransporter() {
  * @param {string} otp       - The 6-digit OTP code
  */
 export async function sendOtpEmail(toEmail, otp) {
+  console.log(`[MAILER] Attempting to send OTP email to: ${toEmail}`);
   const transporter = createTransporter();
 
   const from = process.env.SMTP_FROM || process.env.SMTP_USER;
 
-  await transporter.sendMail({
-    from: `"PeerPrep" <${from}>`,
-    to: toEmail,
-    subject: "PeerPrep – Verify your email address",
-    text: `Your PeerPrep verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.`,
-    html: `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;border:1px solid #e0e0e0;border-radius:8px;">
-        <h2 style="color:#3b82f6;">Verify your PeerPrep email</h2>
-        <p>Thanks for signing up! Use the code below to verify your email address:</p>
-        <div style="font-size:36px;font-weight:bold;letter-spacing:8px;text-align:center;
-                    padding:16px;background:#f3f4f6;border-radius:8px;margin:24px 0;">
-          ${otp}
+  if (!process.env.SMTP_USER || process.env.SMTP_USER === "your-email@gmail.com") {
+    console.warn("[MAILER] WARNING: SMTP_USER is not configured. Email will NOT be sent.");
+    console.log(`[MAILER] >>> DEV OTP FOR ${toEmail}: ${otp} <<<`);
+    return;
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"PeerPrep" <${from}>`,
+      to: toEmail,
+      subject: "PeerPrep – Verify your email address",
+      text: `Your PeerPrep verification code is: ${otp}\n\nThis code expires in 10 minutes. Do not share it with anyone.`,
+      html: `
+        <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;border:1px solid #e0e0e0;border-radius:8px;">
+          <h2 style="color:#3b82f6;">Verify your PeerPrep email</h2>
+          <p>Thanks for signing up! Use the code below to verify your email address:</p>
+          <div style="font-size:36px;font-weight:bold;letter-spacing:8px;text-align:center;
+                      padding:16px;background:#f3f4f6;border-radius:8px;margin:24px 0;">
+            ${otp}
+          </div>
+          <p style="color:#6b7280;font-size:14px;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
+          <p style="color:#6b7280;font-size:12px;">If you did not create a PeerPrep account, you can safely ignore this email.</p>
         </div>
-        <p style="color:#6b7280;font-size:14px;">This code expires in <strong>10 minutes</strong>. Do not share it with anyone.</p>
-        <p style="color:#6b7280;font-size:12px;">If you did not create a PeerPrep account, you can safely ignore this email.</p>
-      </div>
-    `,
-  });
+      `,
+    });
+    console.log(`[MAILER] OTP email sent successfully to: ${toEmail}`);
+  } catch (error) {
+    console.error(`[MAILER] Failed to send OTP email to ${toEmail}:`, error.message);
+    throw error;
+  }
 }
 
 /**

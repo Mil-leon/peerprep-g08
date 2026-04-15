@@ -27,6 +27,15 @@ const OtpModelSchema = new Schema({
     required: true,
     default: "email_verification",
   },
+  /**
+   * Optional field to store user data during the 'email_verification' flow.
+   * This allows us to defer user creation until the email is actually verified.
+   */
+  userData: {
+    username: String,
+    password: { type: String },
+    isAdmin: { type: Boolean, default: false },
+  },
   // TTL index: MongoDB will automatically delete documents after 600 seconds (10 min)
   createdAt: {
     type: Date,

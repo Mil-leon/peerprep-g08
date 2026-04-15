@@ -1,23 +1,58 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Input, Button, Card, CardBody, CardHeader, Form } from "@heroui/react";
-import { loginUser } from "../api/auth";
+import { loginUser, verifyOtp, sendOtp } from "../api/auth";
+import EmailOtpModal from "../components/EmailOtpModal";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear state so it doesn't persist on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage("");
+    setSuccessMessage("");
     try {
       const data = await loginUser(email, password);
       localStorage.setItem("token", data.data.accessToken);
       navigate("/");
     } catch (error: any) {
-      setErrorMessage(error.message || "Something went wrong");
+      if (error.message.includes("not verified")) {
+        // Trigger resend OTP and show modal
+        await sendOtp(email);
+        setIsOtpModalOpen(true);
+      } else {
+        setErrorMessage(error.message || "Something went wrong");
+      }
+    }
+  };
+
+  const handleOtpSubmit = async (otp: string) => {
+    setIsVerifying(true);
+    try {
+      await verifyOtp(email, otp);
+      setIsOtpModalOpen(false);
+      setSuccessMessage("Email verified successfully! You can now log in.");
+    } catch (error: any) {
+      throw error;
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -45,14 +80,31 @@ export default function Login() {
               placeholder="m@example.com"
               variant="bordered"
             />
-            <Input
-              label="Password"
-              type="password"
-              value={password}
-              onValueChange={setPassword}
-              placeholder="Enter Password"
-              variant="bordered"
-            />
+            <div className="flex flex-col gap-1 w-full">
+              <Input
+                label="Password"
+                type="password"
+                value={password}
+                onValueChange={setPassword}
+                placeholder="Enter Password"
+                variant="bordered"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                  className="text-xs text-orange-500 hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            </div>
+
+            {successMessage && (
+              <div className="text-center text-sm text-green-600 font-medium">
+                {successMessage}
+              </div>
+            )}
 
             {errorMessage && (
               <div className="text-center text-sm text-red-500">
@@ -77,6 +129,19 @@ export default function Login() {
           </Form>
         </CardBody>
       </Card>
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+        onSuccess={() => setSuccessMessage("Password reset successfully. You may now log in.")}
+      />
+      <EmailOtpModal
+        isOpen={isOtpModalOpen}
+        onClose={() => setIsOtpModalOpen(false)}
+        onSubmit={handleOtpSubmit}
+        onResend={() => sendOtp(email)}
+        isLoading={isVerifying}
+        email={email}
+      />
     </div>
   );
 }

@@ -94,11 +94,12 @@ export async function findAndUseAdminCode(code) {
  * Deletes all existing OTPs for (email, purpose) then saves a new one.
  * @param {string} email
  * @param {string} otp
- * @param {'email_verification'|'password_reset'} purpose
+ * @param {'email_verification'|'purpose_reset'} purpose
+ * @param {object} [userData] - Optional registration data for account verification
  */
-export async function createOtp(email, otp, purpose = "email_verification") {
+export async function createOtp(email, otp, purpose = "email_verification", userData = null) {
   await OtpModel.deleteMany({ email, purpose });
-  return new OtpModel({ email, otp, purpose }).save();
+  return new OtpModel({ email, otp, purpose, userData }).save();
 }
 
 /**

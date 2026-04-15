@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input, Button, Card, CardBody, CardHeader, Form } from "@heroui/react";
-import { registerUser } from "../api/auth";
+import { registerUser, verifyOtp, sendOtp } from "../api/auth";
+import EmailOtpModal from "../components/EmailOtpModal";
 
 export default function Register() {
   const [username, setUsername] = useState("");
@@ -9,16 +10,46 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMessage("");
+    setIsRegistering(true);
     try {
-      const data = await registerUser({ username, email, password, code });
-      localStorage.setItem("token", data.data.accessToken);
-      navigate("/");
+      await registerUser({ username, email, password, code });
+      // On success, show the OTP modal instead of logging in
+      setIsOtpModalOpen(true);
     } catch (error: any) {
       setErrorMessage(error.message || "Something went wrong");
+      setIsRegistering(false);
+    }
+  };
+
+  const handleOtpSubmit = async (otp: string) => {
+    setIsVerifying(true);
+    try {
+      await verifyOtp(email, otp);
+      setIsOtpModalOpen(false);
+      // Redirect to login after successful verification
+      navigate("/login", { 
+        state: { message: "Email verified successfully! You can now log in." } 
+      });
+    } catch (error: any) {
+      throw error; // Let the modal handle the error display
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await sendOtp(email);
+    } catch (error: any) {
+      throw error;
     }
   };
 
@@ -79,8 +110,10 @@ export default function Register() {
               type="submit"
               color="warning"
               className="w-full mt-2 text-white font-semibold"
+              isDisabled={isRegistering}
+              isLoading={isRegistering}
             >
-              Register
+              {isRegistering ? "Registering..." : "Register"}
             </Button>
             <p className="text-center text-sm text-gray-500">
               Have an account?{" "}
@@ -91,6 +124,17 @@ export default function Register() {
           </Form>
         </CardBody>
       </Card>
+      <EmailOtpModal
+        isOpen={isOtpModalOpen}
+        onClose={() => {
+          setIsOtpModalOpen(false);
+          setIsRegistering(false);
+        }}
+        onSubmit={handleOtpSubmit}
+        onResend={handleResendOtp}
+        isLoading={isVerifying}
+        email={email}
+      />
     </div>
   );
 }
