@@ -59,7 +59,7 @@ jobs:
     name: Unit Tests
     strategy:
       matrix:
-        service: [user-service, question-service]
+        service: [user-service, question-service, matching-service]
 
     steps:
       - uses: actions/checkout@v4

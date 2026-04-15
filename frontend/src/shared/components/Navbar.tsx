@@ -29,7 +29,6 @@ export default function AppNavbar() {
 
   const navItems = [
     { name: "Dashboard", path: "/" },
-    { name: "History", path: "/history" },
     { name: "Questions", path: "/questions" },
     { name: "Profile", path: "/profile" },
   ];

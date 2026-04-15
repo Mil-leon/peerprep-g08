@@ -134,6 +134,21 @@ async function finalizeMatch(io, socket, candidate, queueKey) {
   const question = await fetchQuestion(topic, difficulty);
   const roomUrl  = await createCollaborationRoom(question, state?.userId, candidate.userId);
 
+
+  // If collab room has an issue, ensure that users are disconnected. 
+  if (!question || !roomUrl) {
+    console.error(`Match finalisation failed for ${state?.userId} and ${candidate.userId}: external service error.`);
+
+    await redisClient.set(`user_state:${state?.userId}`, 'DISCONNECTED', { EX: 60 });
+    await redisClient.set(`user_state:${candidate.userId}`, 'DISCONNECTED', { EX: 60 });
+    socketState.delete(socket.id);
+    socketState.delete(candidate.socketId);
+
+    io.to(socket.id).emit('match-error', { message: 'Failed to set up a collaboration room. Please try again.' });
+    io.to(candidate.socketId).emit('match-error', { message: 'Failed to set up a collaboration room. Please try again.' });
+    return;
+  }
+
   const matchPayload = {
     roomUrl,
     questionId: question?._id ?? null,
@@ -146,7 +161,7 @@ async function finalizeMatch(io, socket, candidate, queueKey) {
 
   console.log(`Match finalised: ${state?.userId} and ${candidate.userId} on ${queueKey}`);
 
-  // Delete user and socket states after match. 
+  // Delete user and socket states after match.
   await redisClient.del(`user_state:${state?.userId}`);
   await redisClient.del(`user_state:${candidate.userId}`);
 

@@ -4,7 +4,7 @@
 
 ### API
 - `POST /rooms`: Create a new room. Returns the room ID.
-- `POST /rooms/join`: Join an existing room by ID that is sent in request body.
+- `POST /rooms/join`: Join an existing room by ID cthat is sent in request body.
 - `DELETE /rooms/:id`: Delete a room by ID.
 
 ### Frontend Testing

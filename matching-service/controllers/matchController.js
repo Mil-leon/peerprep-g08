@@ -3,7 +3,8 @@ const { getQueueKeys } = require('../utils/queueKeys');
 const { socketState, findQueues, cleanupSocket } = require('../services/matchingService');
 
 const handleFindMatch = async (io, socket, data) => {
-  const { userId, languages, topics, difficulty } = data;
+  const { languages, topics, difficulty } = data;
+  const userId = socket.userId; // sourced from verified JWT, not client payload
 
   // Basic validation
   if (!userId || !Array.isArray(languages) || languages.length === 0 ||
@@ -51,6 +52,7 @@ const handleFindMatch = async (io, socket, data) => {
     if (!socketState.has(socket.id)) return;
     state.relaxationLevel = 1;
     socket.emit('criteria-relaxed', { level: 1, message: 'Difficulty constraint relaxed. Expanding search...' });
+    // Level 1: queue:{topic}:{lang} — difficulty dropped
     await findQueues(io, socket, getQueueKeys(criteria, 1));
   }, 30_000);
 
@@ -58,7 +60,8 @@ const handleFindMatch = async (io, socket, data) => {
   const t60 = setTimeout(async () => {
     if (!socketState.has(socket.id)) return;
     state.relaxationLevel = 2;
-    socket.emit('criteria-relaxed', { level: 2, message: 'Topic constraint relaxed. Expanding search...' });
+    socket.emit('criteria-relaxed', { level: 2, message: 'Language constraint relaxed. Expanding search...' });
+    // Level 2: queue:{topic} — language dropped, topic is the only remaining constraint
     await findQueues(io, socket, getQueueKeys(criteria, 2));
   }, 60_000);
 

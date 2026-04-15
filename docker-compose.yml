@@ -54,6 +54,8 @@ services:
       - REDIS_PORT=6379
       - QUESTION_SERVICE_URL=http://question-service:8080
       - COLLAB_SERVICE_URL=http://collab-service:3219
+    env_file:
+      - ./matching-service/.env
     depends_on:
       redis:
         condition: service_healthy
